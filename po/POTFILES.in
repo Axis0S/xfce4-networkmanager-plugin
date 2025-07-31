@@ -1,0 +1,23 @@
+# List of source files containing translatable strings
+
+panel-plugin/main.c
+panel-plugin/plugin.c
+panel-plugin/nm-interface.c
+panel-plugin/popup-window.c
+panel-plugin/connection-editor.c
+panel-plugin/settings-dialog.c
+panel-plugin/status-icon.c
+panel-plugin/utils.c
+
+lib/nm-connection.c
+lib/nm-device.c
+lib/connection-types/ethernet.c
+lib/connection-types/wifi.c
+lib/connection-types/vpn.c
+lib/connection-types/mobile.c
+lib/connection-types/bluetooth.c
+
+data/xfce4-networkmanager-plugin.desktop.in
+data/ui/popup-window.ui
+data/ui/connection-editor.ui
+data/ui/settings-dialog.ui

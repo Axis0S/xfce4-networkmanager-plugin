@@ -1,0 +1,110 @@
+# Build directories
+build/
+builddir/
+_build/
+out/
+
+# Meson
+meson-logs/
+meson-private/
+.wrap
+
+# Compiled files
+*.o
+*.lo
+*.la
+*.a
+*.so
+*.so.*
+*.dll
+*.dylib
+*.exe
+
+# Dependencies
+.deps/
+.libs/
+
+# Generated files
+*.pc
+config.h
+config.h.in
+stamp-h1
+
+# Autotools (if ever used)
+autom4te.cache/
+aclocal.m4
+compile
+configure
+depcomp
+install-sh
+missing
+Makefile
+Makefile.in
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Documentation
+docs/_build/
+docs/html/
+docs/latex/
+
+# Translation files
+*.mo
+*.pot
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Test coverage
+*.gcno
+*.gcda
+*.gcov
+coverage/
+lcov/
+
+# Valgrind
+*.memcheck
+*.callgrind
+vgcore.*
+
+# Core dumps
+core
+core.*
+
+# Tags
+tags
+TAGS
+.tags
+!tags/
+gtags.files
+GTAGS
+GRTAGS
+GPATH
+GSYMS
+cscope.files
+cscope.out
+cscope.in.out
+cscope.po.out
+
+# Python cache (for any build scripts)
+__pycache__/
+*.pyc
+*.pyo
+
+# OS specific
+Thumbs.db
+Desktop.ini

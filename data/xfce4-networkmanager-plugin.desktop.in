@@ -1,0 +1,10 @@
+[Xfce Panel Plugin]
+Type=X-XFCE-PanelPlugin
+Encoding=UTF-8
+_Name=Network Manager
+_Comment=Manage network connections
+Icon=network-workgroup
+X-XFCE-Module=networkmanager
+X-XFCE-Internal=false
+X-XFCE-Unique=false
+X-XFCE-API=2.0
