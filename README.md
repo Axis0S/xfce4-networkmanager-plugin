@@ -77,10 +77,3 @@ Contributions are welcome! Please:
 ## License
 
 This project is licensed under GPL-2.0+. See LICENSE file for details.
-
-## Acknowledgments
-
-Inspired by:
-- GNOME network-manager-applet
-- KDE plasma-nm
-- XFCE4 plugin development community
