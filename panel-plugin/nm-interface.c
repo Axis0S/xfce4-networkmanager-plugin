@@ -780,6 +780,140 @@ nm_interface_add_and_activate_connection(NMInterface *nm_interface,
     return FALSE;
 }
 
+/* Add and activate a new enterprise connection */
+gboolean
+nm_interface_add_and_activate_enterprise_connection(NMInterface *nm_interface,
+                                                   const gchar *device_path,
+                                                   const gchar *ap_path,
+                                                   const gchar *ssid,
+                                                   EnterpriseAuthInfo *auth_info,
+                                                   GError **error)
+{
+    GVariantBuilder connection_builder;
+    GVariantBuilder wireless_builder;
+    GVariantBuilder wireless_security_builder;
+    GVariant *connection_dict;
+    GVariant *result;
+    GError *local_error = NULL;
+    
+    if (!nm_interface || !nm_interface->nm_proxy) {
+        g_set_error(error, G_DBUS_ERROR, G_DBUS_ERROR_FAILED,
+                    "NetworkManager interface not initialized");
+        return FALSE;
+    }
+    
+    if (!device_path || !ap_path || !ssid || !auth_info) {
+        g_set_error(error, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS,
+                    "Invalid device path, access point path, SSID, or auth_info");
+        return FALSE;
+    }
+    
+    /* Build the connection settings */
+    g_variant_builder_init(&connection_builder, G_VARIANT_TYPE("a{sa{sv}}"));
+    
+    /* Connection section */
+    g_variant_builder_add(&connection_builder, "{sa{sv}}", "connection",
+        g_variant_builder_new(G_VARIANT_TYPE("a{sv}")),
+        "type", g_variant_new_string("802-11-wireless"),
+        "id", g_variant_new_string(ssid),
+        "autoconnect", g_variant_new_boolean(TRUE),
+        NULL);
+    
+    /* 802-11-wireless section */
+    g_variant_builder_init(&wireless_builder, G_VARIANT_TYPE("a{sv}"));
+    g_variant_builder_add(&wireless_builder, "{sv}", "ssid",
+                         g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE,
+                                                  ssid, strlen(ssid), 1));
+    g_variant_builder_add(&wireless_builder, "{sv}", "mode", g_variant_new_string("infrastructure"));    
+    g_variant_builder_add(&connection_builder, "{sa{sv}}", "802-11-wireless", &wireless_builder);
+
+    /* 802-1x security settings */
+    g_variant_builder_init(&wireless_security_builder, G_VARIANT_TYPE("a{sv}"));
+    g_variant_builder_add(&wireless_security_builder, "{sv}", "key-mgmt", g_variant_new_string("wpa-eap"));
+    g_variant_builder_add(&wireless_security_builder, "{sv}", "eap", g_variant_new_string(auth_info->eap_method));
+    g_variant_builder_add(&wireless_security_builder, "{sv}", "identity", g_variant_new_string(auth_info->identity));
+    if (auth_info->anonymous_identity) {
+        g_variant_builder_add(&wireless_security_builder, "{sv}", "anonymous-identity", g_variant_new_string(auth_info->anonymous_identity));
+    }
+    g_variant_builder_add(&wireless_security_builder, "{sv}", "password", g_variant_new_string(auth_info->password));
+    if (auth_info->ca_cert) {
+        g_variant_builder_add(&wireless_security_builder, "{sv}", "ca-cert", g_variant_new_string(auth_info->ca_cert));
+    }
+    if (auth_info->client_cert) {
+        g_variant_builder_add(&wireless_security_builder, "{sv}", "client-cert", g_variant_new_string(auth_info->client_cert));
+    }
+    if (auth_info->private_key) {
+        g_variant_builder_add(&wireless_security_builder, "{sv}", "private-key", g_variant_new_string(auth_info->private_key));
+    }
+    if (auth_info->private_key_password) {
+        g_variant_builder_add(&wireless_security_builder, "{sv}", "private-key-password", g_variant_new_string(auth_info->private_key_password));
+    }
+    if (auth_info->phase2_auth) {
+        g_variant_builder_add(&wireless_security_builder, "{sv}", "phase2-auth", g_variant_new_string(auth_info->phase2_auth));
+    }
+    g_variant_builder_add(&connection_builder, "{sa{sv}}", "802-1x", &wireless_security_builder);
+    
+    /* IPv4 section - use automatic (DHCP) */
+    g_variant_builder_add(&connection_builder, "{sa{sv}}", "ipv4",
+        g_variant_builder_new(G_VARIANT_TYPE("a{sv}")),
+        "method", g_variant_new_string("auto"),
+        NULL);
+    
+    /* IPv6 section - use automatic */
+    g_variant_builder_add(&connection_builder, "{sa{sv}}", "ipv6",
+        g_variant_builder_new(G_VARIANT_TYPE("a{sv}")),
+        "method", g_variant_new_string("auto"),
+        NULL);
+
+    connection_dict = g_variant_builder_end(&connection_builder);
+    
+    /* Call AddAndActivateConnection */
+    result = g_dbus_proxy_call_sync(
+        nm_interface->nm_proxy,
+        "AddAndActivateConnection",
+        g_variant_new("(a{sa{sv}}oo)",
+                     connection_dict,
+                     device_path,
+                     ap_path),
+        G_DBUS_CALL_FLAGS_NONE,
+        30000,  /* 30 second timeout */
+        NULL,
+        &local_error);
+    
+    if (result) {
+        /* The result contains the path of the new connection and active connection */
+        const gchar *connection_path, *active_path;
+        g_variant_get(result, "(&o&o)", &connection_path, &active_path);
+        g_debug("Created connection: %s, Active: %s", connection_path, active_path);
+        g_variant_unref(result);
+        return TRUE;
+    }
+    
+    /* Provide more helpful error messages */
+    if (local_error) {
+        if (g_error_matches(local_error, G_DBUS_ERROR, G_DBUS_ERROR_TIMED_OUT)) {
+            g_set_error(error, G_DBUS_ERROR, G_DBUS_ERROR_TIMED_OUT,
+                        "Connection attempt timed out. Please try again.");
+        } else if (strstr(local_error->message, "Secrets were required")) {
+            g_set_error(error, G_DBUS_ERROR, G_DBUS_ERROR_AUTH_FAILED,
+                        "Authentication failed. Please check your password.");
+        } else if (strstr(local_error->message, "No suitable device")) {
+            g_set_error(error, G_DBUS_ERROR, G_DBUS_ERROR_FAILED,
+                        "No suitable network device found");
+        } else if (strstr(local_error->message, "access-denied")) {
+            g_set_error(error, G_DBUS_ERROR, G_DBUS_ERROR_ACCESS_DENIED,
+                        "Access denied. Please check your network permissions.");
+        } else {
+            g_propagate_error(error, local_error);
+            local_error = NULL;
+        }
+        g_clear_error(&local_error);
+    }
+    
+    return FALSE;
+}
+
+
 /* Set callback functions */
 void
 nm_interface_set_state_changed_cb(NMInterface *nm_interface,
@@ -884,6 +1018,8 @@ nm_interface_get_ap_info(NMInterface *nm_interface, const gchar *ap_path)
     /* Determine security type */
     if ((flags == 0x01) && (wpa_flags == 0) && (rsn_flags == 0)) {
         ap_info->security = g_strdup("None");
+    } else if ((rsn_flags & 0x00000200) || (wpa_flags & 0x00000200)) { /* 802.1X Enterprise */
+        ap_info->security = g_strdup("802.1X");
     } else if (rsn_flags & 0x00000400) { /* SAE (WPA3) */
         ap_info->security = g_strdup("WPA3");
     } else if (rsn_flags & 0x00000100 || wpa_flags & 0x00000100) { /* WPA2 */

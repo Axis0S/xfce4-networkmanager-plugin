@@ -14,8 +14,27 @@
 
 G_BEGIN_DECLS
 
-/* Function to show password dialog and get password */
+/* Simple password dialog */
 gchar *password_dialog_show(GtkWindow *parent, const gchar *network_name);
+
+/* Enterprise authentication info structure */
+typedef struct {
+    gchar *eap_method;
+    gchar *identity;
+    gchar *password;
+    gchar *anonymous_identity;
+    gchar *ca_cert;
+    gchar *client_cert;
+    gchar *private_key;
+    gchar *private_key_password;
+    gchar *phase2_auth;
+} EnterpriseAuthInfo;
+
+/* Function to show enterprise authentication dialog */
+EnterpriseAuthInfo *password_dialog_show_enterprise(GtkWindow *parent, const gchar *network_name);
+
+/* Function to free enterprise auth info */
+void enterprise_auth_info_free(EnterpriseAuthInfo *info);
 
 G_END_DECLS
 

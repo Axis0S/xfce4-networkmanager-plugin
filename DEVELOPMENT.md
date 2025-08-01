@@ -56,6 +56,15 @@ The XFCE4 NetworkManager Plugin is a native panel plugin that provides comprehen
   - Enhanced security detection using RSN flags
   - Security-type aware connection creation
   - Support for different key management schemes
+  - **802.1X Enterprise Authentication (COMPLETED)**:
+    - Enterprise authentication dialog UI (`password_dialog_show_enterprise`)
+    - Support for multiple EAP methods (PEAP, TTLS, TLS, LEAP, PWD, FAST)
+    - Phase 2 authentication options (MSCHAPv2, MSCHAP, PAP, CHAP, GTC)
+    - Certificate management (CA cert, client cert, private key)
+    - Anonymous identity support
+    - Enterprise connection creation (`nm_interface_add_and_activate_enterprise_connection`)
+    - Detection of 802.1X networks in access point scanning
+    - Integration with popup window for enterprise network selection
 - ✓ **Connection Type Infrastructure**:
   - Basic structure for Ethernet connections (`lib/connection-types/ethernet.c/h`)
   - Basic structure for Mobile connections (`lib/connection-types/mobile.c/h`)
@@ -114,11 +123,11 @@ The XFCE4 NetworkManager Plugin is a native panel plugin that provides comprehen
    - ✓ Basic structure for Mobile connections
    - ✓ Basic structure for VPN connections
    - [ ] Full implementation of connection handlers
-6. [◐] Handle different security types (WEP, WPA3, Enterprise)
+6. [✓] Handle different security types (WEP, WPA3, Enterprise)
    - ✓ WEP support implemented
    - ✓ WPA3 support implemented (SAE)
    - ✓ Enhanced security detection (RSN flags)
-   - [ ] Enterprise authentication (802.1X)
+   - ✓ Enterprise authentication (802.1X)
 
 ### Current Implementation Focus - Phase 2 COMPLETED ✓
 |- ✓ Complete Wi-Fi access point enumeration
@@ -152,7 +161,7 @@ The XFCE4 NetworkManager Plugin is a native panel plugin that provides comprehen
 |- ✓ Create password dialog for secured networks
 
 ### Phase 3: Connection Type Support (Weeks 6-8) - IN PROGRESS
-- [◐] Wi-Fi (WPA/WPA2/WPA3) with password management
+- [✓] Wi-Fi (WPA/WPA2/WPA3/802.1X) with password management
   - ✓ Implemented AddAndActivateConnection for creating new connections
   - ✓ Basic WPA/WPA2 password support
   - ✓ Connection profile creation with proper settings
@@ -161,7 +170,7 @@ The XFCE4 NetworkManager Plugin is a native panel plugin that provides comprehen
   - ✓ WPA3 support (SAE key management)
   - ✓ WEP support (legacy)
   - ✓ Enhanced security detection with RSN flags
-  - [ ] Enterprise authentication (802.1X)
+  - ✓ Enterprise authentication (802.1X)
 - [◐] Ethernet connections
   - ✓ Basic structure implemented (ethernet.c/h)
   - [ ] Full connection handling

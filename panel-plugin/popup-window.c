@@ -357,6 +357,20 @@ on_network_item_clicked(GtkListBoxRow *row, gpointer user_data)
             } else {
                 notification_show_connection_status(popup->notification_manager, ap_info->ssid, TRUE, NULL);
             }
+        } else if (g_strcmp0(ap_info->security, "802.1X") == 0) {
+            /* Show enterprise authentication dialog for 802.1X networks */
+            EnterpriseAuthInfo *auth_info = password_dialog_show_enterprise(GTK_WINDOW(popup->window), ap_info->ssid);
+            if (auth_info) {
+                g_message("Creating new connection for enterprise network: %s", ap_info->ssid);
+                if (!nm_interface_add_and_activate_enterprise_connection(popup->nm_interface, device_path, ap_info->path, ap_info->ssid, auth_info, &error)) {
+                    g_warning("Failed to create and activate enterprise connection: %s", error->message);
+                    show_connection_error(popup, ap_info->ssid, error->message);
+                    g_clear_error(&error);
+                } else {
+                    notification_show_connection_status(popup->notification_manager, ap_info->ssid, TRUE, NULL);
+                }
+                enterprise_auth_info_free(auth_info);
+            }
         } else if (g_strcmp0(ap_info->security, "None") != 0) {
             /* Show password dialog for secured networks */
             gchar *password = password_dialog_show(GTK_WINDOW(popup->window), ap_info->ssid);

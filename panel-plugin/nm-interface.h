@@ -13,6 +13,7 @@
 #include <glib.h>
 #include <gio/gio.h>
 #include <NetworkManager.h>
+#include "password-dialog.h"
 
 G_BEGIN_DECLS
 
@@ -140,6 +141,12 @@ gboolean             nm_interface_add_and_activate_connection (NMInterface *nm_i
                                                          const gchar *ssid,
                                                          const gchar *password,
                                                          const gchar *security,
+                                                         GError **error);
+gboolean             nm_interface_add_and_activate_enterprise_connection (NMInterface *nm_interface,
+                                                         const gchar *device_path,
+                                                         const gchar *ap_path,
+                                                         const gchar *ssid,
+                                                         EnterpriseAuthInfo *auth_info,
                                                          GError **error);
 gboolean             nm_interface_deactivate_connection  (NMInterface *nm_interface,
                                                          const gchar *active_path,
