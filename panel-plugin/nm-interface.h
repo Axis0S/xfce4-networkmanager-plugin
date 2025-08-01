@@ -20,6 +20,7 @@ G_BEGIN_DECLS
 typedef struct _NMInterface NMInterface;
 typedef struct _NMDeviceInfo NMDeviceInfo;
 typedef struct _NMConnectionInfo NMConnectionInfo;
+typedef struct _NMAccessPointInfo NMAccessPointInfo;
 
 /* Device types we support */
 typedef enum {
@@ -71,6 +72,7 @@ struct _NMDeviceInfo {
 
 /* Connection information structure */
 struct _NMConnectionInfo {
+    gchar                *path;       /* D-Bus object path */
     gchar                *uuid;
     gchar                *id;
     gchar                *type;
@@ -80,6 +82,14 @@ struct _NMConnectionInfo {
     
     /* Connection-specific settings */
     GHashTable           *settings;
+};
+
+/* Access point information structure */
+struct _NMAccessPointInfo {
+    gchar  *path;      /* D-Bus object path */
+    gchar  *ssid;
+    guchar  strength;
+    gchar  *security;
 };
 
 /* Callback types */
@@ -120,6 +130,17 @@ gboolean             nm_interface_activate_connection    (NMInterface *nm_interf
                                                          const gchar *connection_uuid,
                                                          const gchar *device_path,
                                                          GError **error);
+NMConnectionInfo    *nm_interface_find_connection_by_ssid(NMInterface *nm_interface,
+                                                         const gchar *ssid);
+const gchar         *nm_interface_get_connection_path    (NMInterface *nm_interface,
+                                                         const gchar *uuid);
+gboolean             nm_interface_add_and_activate_connection (NMInterface *nm_interface,
+                                                         const gchar *device_path,
+                                                         const gchar *ap_path,
+                                                         const gchar *ssid,
+                                                         const gchar *password,
+                                                         const gchar *security,
+                                                         GError **error);
 gboolean             nm_interface_deactivate_connection  (NMInterface *nm_interface,
                                                          const gchar *active_path,
                                                          GError **error);
@@ -130,6 +151,7 @@ GList               *nm_interface_get_access_points      (NMInterface *nm_interf
 gboolean             nm_interface_request_scan          (NMInterface *nm_interface,
                                                          const gchar *device_path,
                                                          GError **error);
+void                 nm_interface_free_ap_info          (NMAccessPointInfo *ap_info);
 
 /* Signal handlers */
 void                 nm_interface_set_state_changed_cb   (NMInterface *nm_interface,

@@ -14,7 +14,9 @@
 
 G_BEGIN_DECLS
 
-/* TODO: Implement ethernet connection type */
+typedef struct _EthernetConnection EthernetConnection;
+
+void initialize_ethernet_connection(NMDevice *device);
 
 G_END_DECLS
 

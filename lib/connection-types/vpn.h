@@ -14,7 +14,9 @@
 
 G_BEGIN_DECLS
 
-/* TODO: Implement vpn connection type */
+typedef struct _VpnConnection VpnConnection;
+
+void initialize_vpn_connection(NMDevice *device, const gchar *vpn_type);
 
 G_END_DECLS
 

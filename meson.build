@@ -24,6 +24,7 @@ gtk_dep = dependency('gtk+-3.0', version: '>= 3.22.0')
 libxfce4panel_dep = dependency('libxfce4panel-2.0', version: '>= 4.14.0')
 libxfce4ui_dep = dependency('libxfce4ui-2', version: '>= 4.14.0')
 libnm_dep = dependency('libnm', version: '>= 1.10.0')
+libnotify_dep = dependency('libnotify', version: '>= 0.7.0')
 
 # Compiler flags
 add_global_arguments('-DGETTEXT_PACKAGE="' + meson.project_name() + '"', language: 'c')

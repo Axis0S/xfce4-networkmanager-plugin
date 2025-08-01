@@ -7,17 +7,16 @@
  * (at your option) any later version.
  */
 
-#ifndef __MOBILE_H__
-#define __MOBILE_H__
+#ifndef __PASSWORD_DIALOG_H__
+#define __PASSWORD_DIALOG_H__
 
-#include <glib.h>
+#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
-typedef struct _MobileConnection MobileConnection;
-
-void initialize_mobile_connection(NMDevice *device, const gchar *apn);
+/* Function to show password dialog and get password */
+gchar *password_dialog_show(GtkWindow *parent, const gchar *network_name);
 
 G_END_DECLS
 
-#endif /* __MOBILE_H__ */
+#endif /* __PASSWORD_DIALOG_H__ */

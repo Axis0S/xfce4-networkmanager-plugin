@@ -12,10 +12,7 @@
 
 #include <gtk/gtk.h>
 #include "plugin.h"
-#include "nm-interface.h"
-#include "nm-interface.h"
-
-G_BEGIN_DECLS
+#include "notification.h"
 
 typedef struct _PopupWindow PopupWindow;
 
@@ -27,15 +24,22 @@ struct _PopupWindow {
     GtkWidget            *scrolled_window;
     GtkWidget            *network_list;
     GtkWidget            *search_entry;
+    GtkWidget            *status_bar;          /* Status/notification area */
+    GtkWidget            *spinner;             /* Loading spinner */
     
     NetworkManagerPlugin *plugin;
     NMInterface          *nm_interface;
+    NotificationManager  *notification_manager;
     
     /* Current filter */
     gchar                *filter_text;
     
     /* Update timer */
     guint                 update_timer;
+    
+    /* Connection state */
+    gboolean              connecting;
+    gchar                *connecting_to_ssid;
 };
 
 /* Function prototypes */

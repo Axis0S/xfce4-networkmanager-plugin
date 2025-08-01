@@ -1,0 +1,132 @@
+/* 
+ * CSS styles for XFCE4 NetworkManager Plugin
+ */
+
+/* Popup window styling */
+.nm-plugin-popup {
+    background-color: @theme_bg_color;
+    border: 1px solid @borders;
+    border-radius: 6px;
+    padding: 0;
+}
+
+/* Network list styling */
+.nm-network-list {
+    background-color: transparent;
+}
+
+.nm-network-list row {
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.nm-network-list row:hover {
+    background-color: alpha(@theme_fg_color, 0.08);
+}
+
+.nm-network-list row:selected {
+    background-color: @theme_selected_bg_color;
+    color: @theme_selected_fg_color;
+}
+
+/* Search entry styling */
+.nm-search-entry {
+    margin: 8px;
+    border-radius: 4px;
+}
+
+/* Inline message styling */
+.inline-message {
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 4px 8px;
+    font-size: 0.9em;
+}
+
+.inline-message.info {
+    background-color: alpha(@info_color, 0.15);
+    color: @info_color;
+    border: 1px solid alpha(@info_color, 0.3);
+}
+
+.inline-message.success {
+    background-color: alpha(@success_color, 0.15);
+    color: @success_color;
+    border: 1px solid alpha(@success_color, 0.3);
+}
+
+.inline-message.warning {
+    background-color: alpha(@warning_color, 0.15);
+    color: @warning_color;
+    border: 1px solid alpha(@warning_color, 0.3);
+}
+
+.inline-message.error {
+    background-color: alpha(@error_color, 0.15);
+    color: @error_color;
+    border: 1px solid alpha(@error_color, 0.3);
+}
+
+/* Spinner styling */
+.nm-spinner {
+    margin: 4px;
+}
+
+/* Header box styling */
+.nm-header-box {
+    padding: 4px;
+    border-bottom: 1px solid alpha(@borders, 0.5);
+}
+
+/* Status bar styling */
+.nm-status-bar {
+    padding: 4px;
+    min-height: 0;
+}
+
+/* Section headers */
+.nm-section-header {
+    font-weight: bold;
+    padding: 4px 12px;
+    color: alpha(@theme_fg_color, 0.7);
+}
+
+/* Network item icons */
+.nm-network-icon {
+    margin-right: 8px;
+}
+
+.nm-signal-icon {
+    margin-left: 8px;
+}
+
+/* Panel button styling */
+.nm-panel-button {
+    padding: 2px;
+}
+
+.nm-panel-button:hover {
+    background-color: alpha(@theme_fg_color, 0.1);
+    border-radius: 4px;
+}
+
+/* Tooltip styling */
+.nm-tooltip {
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: @tooltip_bg_color;
+    color: @tooltip_fg_color;
+}
+
+/* Password dialog styling */
+.nm-password-dialog entry {
+    margin: 8px;
+    min-width: 300px;
+}
+
+/* Fallback colors if theme colors not available */
+@define-color info_color #3daee9;
+@define-color success_color #27ae60;
+@define-color warning_color #f39c12;
+@define-color error_color #da4453;

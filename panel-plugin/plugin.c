@@ -45,13 +45,27 @@ networkmanager_plugin_new(XfcePanelPlugin *plugin)
 
     /* Initialize NetworkManager interface */
     nm_plugin->nm_interface = nm_interface_new();
+    
+    error = NULL;
     if (!nm_interface_init(nm_plugin->nm_interface, &error)) {
+        GtkWidget *error_dialog = gtk_message_dialog_new(
+            NULL,
+            GTK_DIALOG_MODAL,
+            GTK_MESSAGE_ERROR,
+            GTK_BUTTONS_CLOSE,
+            "Failed to initialize NetworkManager interface.\n\n%s",
+            error ? error->message : "Unknown error");
+        gtk_dialog_run(GTK_DIALOG(error_dialog));
+        gtk_widget_destroy(error_dialog);
+        
         g_warning("Failed to initialize NetworkManager interface: %s", 
                   error ? error->message : "Unknown error");
         if (error)
             g_error_free(error);
+        
+        /* Continue with limited functionality */
+        nm_plugin->nm_interface = NULL;
     }
-
     /* Create the panel button */
     nm_plugin->button = gtk_button_new();
     gtk_button_set_relief(GTK_BUTTON(nm_plugin->button), GTK_RELIEF_NONE);

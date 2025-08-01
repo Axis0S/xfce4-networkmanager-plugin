@@ -12,5 +12,32 @@
 #endif
 
 #include "ethernet.h"
+#include <libnm/NetworkManager.h>
 
-/* TODO: Implement ethernet connection type */
+struct EthernetConnection {
+    NMDevice *device;
+    NMConnection *connection;
+};
+
+static EthernetConnection *
+create_ethernet_connection(NMDevice *device) {
+    EthernetConnection *ethernet_conn = g_new0(EthernetConnection, 1);
+    ethernet_conn->device = device;
+    ethernet_conn->connection = nm_simple_connection_new();
+
+    /* Here we can set up the default connection settings for Ethernet */
+    /* For now it's a stub */
+
+    return ethernet_conn;
+}
+
+void
+initialize_ethernet_connection(NMDevice *device) {
+    EthernetConnection *ethernet_conn = create_ethernet_connection(device);
+    
+    /* Initialize or register connection with NetworkManager */
+    
+    /* Free resources */
+    g_object_unref(ethernet_conn->connection);
+    g_free(ethernet_conn);
+}
