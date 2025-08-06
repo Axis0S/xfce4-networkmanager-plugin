@@ -11,12 +11,14 @@
 #define __MOBILE_H__
 
 #include <glib.h>
+#include <NetworkManager.h>
 
 G_BEGIN_DECLS
 
 typedef struct _MobileConnection MobileConnection;
 
 void initialize_mobile_connection(NMDevice *device, const gchar *apn);
+GVariant *mobile_create_connection_gvariant(const gchar *id, const gchar *apn);
 
 G_END_DECLS
 

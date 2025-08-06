@@ -8,11 +8,11 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include config.h
+#include <config.h>
 #endif
 
-#include "popup-window.h"
 #include "nm-interface.h"
+#include "popup-window.h"
 #include "password-dialog.h"
 #include "notification.h"
 #include <string.h>
@@ -42,34 +42,24 @@ popup_window_new(NetworkManagerPlugin *plugin)
     popup->nm_interface = plugin->nm_interface;
     popup->notification_manager = notification_manager_new();
 
-    popup->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_type_hint(GTK_WINDOW(popup->window),
-                             GDK_WINDOW_TYPE_HINT_POPUP_MENU);
+    GtkBuilder *builder;
+    gchar *ui_path;
 
-    popup->main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_container_add(GTK_CONTAINER(popup->window), popup->main_box);
+    builder = gtk_builder_new();
+    ui_path = g_build_filename(PACKAGE_DATA_DIR, "panel-plugin", "ui", "popup-window.ui", NULL);
+    gtk_builder_add_from_file(builder, ui_path, NULL);
+    g_free(ui_path);
 
-    popup->header_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    gtk_box_pack_start(GTK_BOX(popup->main_box), popup->header_box, FALSE, FALSE, 0);
+    popup->window = GTK_WIDGET(gtk_builder_get_object(builder, "popup_window"));
+    popup->main_box = GTK_WIDGET(gtk_builder_get_object(builder, "main_box"));
+    popup->header_box = GTK_WIDGET(gtk_builder_get_object(builder, "header_box"));
+    popup->spinner = GTK_WIDGET(gtk_builder_get_object(builder, "spinner"));
+    popup->search_entry = GTK_WIDGET(gtk_builder_get_object(builder, "search_entry"));
+    popup->status_bar = GTK_WIDGET(gtk_builder_get_object(builder, "status_bar"));
+    popup->scrolled_window = GTK_WIDGET(gtk_builder_get_object(builder, "scrolled_window"));
+    popup->network_list = GTK_WIDGET(gtk_builder_get_object(builder, "network_list"));
 
-    /* Add spinner for loading indication */
-    popup->spinner = gtk_spinner_new();
-    gtk_box_pack_start(GTK_BOX(popup->header_box), popup->spinner, FALSE, FALSE, 5);
-
-    popup->search_entry = gtk_search_entry_new();
-    gtk_box_pack_end(GTK_BOX(popup->header_box), popup->search_entry, FALSE, FALSE, 0);
-
-    /* Add status bar for inline notifications */
-    popup->status_bar = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_box_pack_start(GTK_BOX(popup->main_box), popup->status_bar, FALSE, FALSE, 0);
-
-    popup->scrolled_window = gtk_scrolled_window_new(NULL, NULL);
-    gtk_box_pack_start(GTK_BOX(popup->main_box), popup->scrolled_window, TRUE, TRUE, 0);
-
-    popup->network_list = gtk_list_box_new();
-    gtk_list_box_set_selection_mode(GTK_LIST_BOX(popup->network_list), GTK_SELECTION_SINGLE);
-    gtk_list_box_set_activate_on_single_click(GTK_LIST_BOX(popup->network_list), TRUE);
-    gtk_container_add(GTK_CONTAINER(popup->scrolled_window), popup->network_list);
+    g_object_unref(builder);
 
     g_signal_connect(popup->search_entry, "search-changed",
                      G_CALLBACK(on_search_changed), popup);
@@ -405,19 +395,19 @@ on_network_item_clicked(GtkListBoxRow *row, gpointer user_data)
 static void
 start_loading_spinner(PopupWindow *popup)
 {
-    gtk_spinner_start(GTK_SPINNER(popup-spinner));
-    gtk_widget_show(popup-spinner);
-    gtk_widget_set_sensitive(GTK_WIDGET(popup-header_box), FALSE);
-    popup-connecting = TRUE;
+    gtk_spinner_start(GTK_SPINNER(popup->spinner));
+    gtk_widget_show(popup->spinner);
+    gtk_widget_set_sensitive(GTK_WIDGET(popup->header_box), FALSE);
+    popup->connecting = TRUE;
 }
 
 static void
 stop_loading_spinner(PopupWindow *popup)
 {
-    gtk_spinner_stop(GTK_SPINNER(popup-spinner));
-    gtk_widget_hide(popup-spinner);
-    gtk_widget_set_sensitive(GTK_WIDGET(popup-header_box), TRUE);
-    popup-connecting = FALSE;
+    gtk_spinner_stop(GTK_SPINNER(popup->spinner));
+    gtk_widget_hide(popup->spinner);
+    gtk_widget_set_sensitive(GTK_WIDGET(popup->header_box), TRUE);
+    popup->connecting = FALSE;
 }
 
 static void
@@ -428,20 +418,20 @@ show_connection_error(PopupWindow *popup,
     GtkWidget *inline_message;
     /* Clear existing messages */
     GList *children, *iter;
-    children = gtk_container_get_children(GTK_CONTAINER(popup-status_bar));
+    children = gtk_container_get_children(GTK_CONTAINER(popup->status_bar));
     for (iter = children; iter != NULL; iter = g_list_next(iter)) {
-        gtk_widget_destroy(GTK_WIDGET(iter-data));
+        gtk_widget_destroy(GTK_WIDGET(iter->data));
     }
     g_list_free(children);
 
     /* Create and display an inline error message */
     inline_message = notification_create_inline_message(error_message,
                                                         NOTIFICATION_TYPE_ERROR);
-    gtk_container_add(GTK_CONTAINER(popup-status_bar), inline_message);
-    gtk_widget_show_all(popup-status_bar);
+    gtk_container_add(GTK_CONTAINER(popup->status_bar), inline_message);
+    gtk_widget_show_all(popup->status_bar);
 
     /* Show popup notification */
-    notification_show_network_error(popup-notification_manager, "Connection Attempt",
+    notification_show_network_error(popup->notification_manager, "Connection Attempt",
                                    error_message);
 }
 
@@ -451,9 +441,9 @@ on_search_changed(GtkSearchEntry *entry, PopupWindow *popup)
 {
     const gchar *text;
     
-    g_free(popup-filter_text);
+    g_free(popup->filter_text);
     text = gtk_entry_get_text(GTK_ENTRY(entry));
-    popup-filter_text = g_strdup(text);
+    popup->filter_text = g_strdup(text);
     
     /* Update the network list with the new filter */
     popup_window_update_networks(popup);

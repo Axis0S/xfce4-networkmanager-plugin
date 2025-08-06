@@ -85,7 +85,7 @@ networkmanager_plugin_new(XfcePanelPlugin *plugin)
     gtk_widget_show(nm_plugin->button);
     
     /* Create popup window */
-    nm_plugin->popup_window = popup_window_new(nm_plugin);
+    nm_plugin->popup_window = (GtkWidget*)popup_window_new(nm_plugin);
 
     return nm_plugin;
 }

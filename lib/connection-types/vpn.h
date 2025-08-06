@@ -11,12 +11,14 @@
 #define __VPN_H__
 
 #include <glib.h>
+#include <NetworkManager.h>
 
 G_BEGIN_DECLS
 
 typedef struct _VpnConnection VpnConnection;
 
 void initialize_vpn_connection(NMDevice *device, const gchar *vpn_type);
+GVariant *vpn_create_connection_gvariant(const gchar *id, const gchar *server);
 
 G_END_DECLS
 

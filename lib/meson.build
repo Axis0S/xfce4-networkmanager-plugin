@@ -23,7 +23,8 @@ nm_lib = static_library('xfce4-nm-lib',
   dependencies: [
     glib_dep,
     gtk_dep,
-    libnm_dep
+    libnm_dep,
+    dependency('uuid')
   ],
   install: false
 )

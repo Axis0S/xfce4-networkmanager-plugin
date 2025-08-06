@@ -8,6 +8,10 @@
  */
 
 #include "password-dialog.h"
+#include <gtk/gtk.h>
+#include <libintl.h>
+
+#define _(String) gettext(String)
 
 /* Function to show password dialog and get password */
 gchar *
@@ -32,7 +36,7 @@ password_dialog_show(GtkWindow *parent, const gchar *network_name)
 
     /* Label */
     label = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(label), g_strdup_printf("Enter password for \u003cb\u003e%s\u003c/b\u003e:", network_name));
+    gtk_label_set_markup(GTK_LABEL(label), g_strdup_printf("Enter password for <b>%s</b>:", network_name));
     gtk_container_add(GTK_CONTAINER(content_area), label);
 
     /* Password entry */

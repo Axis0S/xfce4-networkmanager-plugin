@@ -23,24 +23,14 @@ typedef struct _NMDeviceInfo NMDeviceInfo;
 typedef struct _NMConnectionInfo NMConnectionInfo;
 typedef struct _NMAccessPointInfo NMAccessPointInfo;
 
-/* Device types we support */
+/* Our simplified connection states */
 typedef enum {
-    NM_DEVICE_TYPE_ETHERNET,
-    NM_DEVICE_TYPE_WIFI,
-    NM_DEVICE_TYPE_MOBILE,
-    NM_DEVICE_TYPE_VPN,
-    NM_DEVICE_TYPE_BLUETOOTH,
-    NM_DEVICE_TYPE_UNKNOWN
-} NMDeviceType;
-
-/* Connection states */
-typedef enum {
-    NM_CONNECTION_STATE_UNKNOWN,
-    NM_CONNECTION_STATE_DISCONNECTED,
-    NM_CONNECTION_STATE_CONNECTING,
-    NM_CONNECTION_STATE_CONNECTED,
-    NM_CONNECTION_STATE_FAILED
-} NMConnectionState;
+    XFCE_NM_CONNECTION_STATE_UNKNOWN,
+    XFCE_NM_CONNECTION_STATE_DISCONNECTED,
+    XFCE_NM_CONNECTION_STATE_CONNECTING,
+    XFCE_NM_CONNECTION_STATE_CONNECTED,
+    XFCE_NM_CONNECTION_STATE_FAILED
+} XfceNMConnectionState;
 
 /* Device information structure */
 struct _NMDeviceInfo {
@@ -77,7 +67,7 @@ struct _NMConnectionInfo {
     gchar                *uuid;
     gchar                *id;
     gchar                *type;
-    NMConnectionState     state;
+    XfceNMConnectionState state;
     gboolean              autoconnect;
     guint64               timestamp;
     
@@ -148,6 +138,10 @@ gboolean             nm_interface_add_and_activate_enterprise_connection (NMInte
                                                          const gchar *ssid,
                                                          EnterpriseAuthInfo *auth_info,
                                                          GError **error);
+gboolean             nm_interface_add_and_activate_wired_connection (NMInterface *nm_interface,
+                                                                   const gchar *device_path,
+                                                                   const gchar *id,
+                                                                   GError **error);
 gboolean             nm_interface_deactivate_connection  (NMInterface *nm_interface,
                                                          const gchar *active_path,
                                                          GError **error);
@@ -173,7 +167,7 @@ void                 nm_interface_set_device_removed_cb  (NMInterface *nm_interf
 
 /* Utility functions */
 const gchar         *nm_interface_device_type_to_string  (NMDeviceType type);
-const gchar         *nm_interface_state_to_string        (NMConnectionState state);
+const gchar         *nm_interface_state_to_string        (XfceNMConnectionState state);
 
 G_END_DECLS
 

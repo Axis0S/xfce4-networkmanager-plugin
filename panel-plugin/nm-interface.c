@@ -14,6 +14,7 @@
 #include "nm-interface.h"
 #include "utils.h"
 #include <string.h>
+#include "connection-types/ethernet.h"
 
 /* D-Bus paths and interfaces */
 #define NM_DBUS_SERVICE                   "org.freedesktop.NetworkManager"
@@ -171,11 +172,9 @@ nm_interface_device_type_to_string(NMDeviceType type)
             return "Ethernet";
         case NM_DEVICE_TYPE_WIFI:
             return "Wi-Fi";
-        case NM_DEVICE_TYPE_MOBILE:
+        case NM_DEVICE_TYPE_MODEM:
             return "Mobile";
-        case NM_DEVICE_TYPE_VPN:
-            return "VPN";
-        case NM_DEVICE_TYPE_BLUETOOTH:
+        case NM_DEVICE_TYPE_BT:
             return "Bluetooth";
         default:
             return "Unknown";
@@ -183,16 +182,16 @@ nm_interface_device_type_to_string(NMDeviceType type)
 }
 
 const gchar *
-nm_interface_state_to_string(NMConnectionState state)
+nm_interface_state_to_string(XfceNMConnectionState state)
 {
     switch (state) {
-        case NM_CONNECTION_STATE_DISCONNECTED:
+        case XFCE_NM_CONNECTION_STATE_DISCONNECTED:
             return "Disconnected";
-        case NM_CONNECTION_STATE_CONNECTING:
+        case XFCE_NM_CONNECTION_STATE_CONNECTING:
             return "Connecting";
-        case NM_CONNECTION_STATE_CONNECTED:
+        case XFCE_NM_CONNECTION_STATE_CONNECTED:
             return "Connected";
-        case NM_CONNECTION_STATE_FAILED:
+        case XFCE_NM_CONNECTION_STATE_FAILED:
             return "Failed";
         default:
             return "Unknown";
@@ -455,17 +454,17 @@ nm_interface_create_device_info(NMInterface *nm_interface, const gchar *device_p
         
         /* Map NetworkManager device types to our enum */
         switch (device_type) {
-            case 1: /* NM_DEVICE_TYPE_ETHERNET */
+            case NM_DEVICE_TYPE_ETHERNET:
                 device_info->type = NM_DEVICE_TYPE_ETHERNET;
                 break;
-            case 2: /* NM_DEVICE_TYPE_WIFI */
+            case NM_DEVICE_TYPE_WIFI:
                 device_info->type = NM_DEVICE_TYPE_WIFI;
                 break;
-            case 8: /* NM_DEVICE_TYPE_MODEM */
-                device_info->type = NM_DEVICE_TYPE_MOBILE;
+            case NM_DEVICE_TYPE_MODEM:
+                device_info->type = NM_DEVICE_TYPE_MODEM;
                 break;
-            case 5: /* NM_DEVICE_TYPE_BT */
-                device_info->type = NM_DEVICE_TYPE_BLUETOOTH;
+            case NM_DEVICE_TYPE_BT:
+                device_info->type = NM_DEVICE_TYPE_BT;
                 break;
             default:
                 device_info->type = NM_DEVICE_TYPE_UNKNOWN;
@@ -525,7 +524,7 @@ nm_interface_free_device_info(NMDeviceInfo *info)
             g_free(info->specific.wifi.active_ap);
             g_list_free(info->specific.wifi.access_points);
             break;
-        case NM_DEVICE_TYPE_MOBILE:
+        case NM_DEVICE_TYPE_MODEM:
             g_free(info->specific.mobile.operator_name);
             break;
         default:
@@ -646,6 +645,71 @@ nm_interface_activate_connection(NMInterface *nm_interface,
         g_clear_error(&local_error);
     }
     
+    return FALSE;
+}
+
+gboolean
+nm_interface_add_and_activate_wired_connection(NMInterface *nm_interface,
+                                               const gchar *device_path,
+                                               const gchar *id,
+                                               GError **error)
+{
+    GVariant *connection_dict;
+    GVariant *result;
+    GError *local_error = NULL;
+
+    if (!nm_interface || !nm_interface->nm_proxy) {
+        g_set_error(error, G_DBUS_ERROR, G_DBUS_ERROR_FAILED,
+                    "NetworkManager interface not initialized");
+        return FALSE;
+    }
+
+    if (!device_path || !id) {
+        g_set_error(error, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS,
+                    "Invalid device path or connection id");
+        return FALSE;
+    }
+
+    /* Build the connection settings */
+    connection_dict = ethernet_create_connection_gvariant(id);
+
+    /* Call AddAndActivateConnection */
+    result = g_dbus_proxy_call_sync(
+        nm_interface->nm_proxy,
+        "AddAndActivateConnection",
+        g_variant_new("(a{sa{sv}}oo)",
+                     connection_dict,
+                     device_path,
+                     "/"), /* No specific object for wired */
+        G_DBUS_CALL_FLAGS_NONE,
+        30000,  /* 30 second timeout */
+        NULL,
+        &local_error);
+
+    if (result) {
+        /* The result contains the path of the new connection and active connection */
+        const gchar *connection_path, *active_path;
+        g_variant_get(result, "(&o&o)", &connection_path, &active_path);
+        g_debug("Created connection: %s, Active: %s", connection_path, active_path);
+        g_variant_unref(result);
+        return TRUE;
+    }
+
+    /* Provide more helpful error messages */
+    if (local_error) {
+        if (g_error_matches(local_error, G_DBUS_ERROR, G_DBUS_ERROR_TIMED_OUT)) {
+            g_set_error(error, G_DBUS_ERROR, G_DBUS_ERROR_TIMED_OUT,
+                        "Connection attempt timed out. Please try again.");
+        } else if (strstr(local_error->message, "access-denied")) {
+            g_set_error(error, G_DBUS_ERROR, G_DBUS_ERROR_ACCESS_DENIED,
+                        "Access denied. Please check your network permissions.");
+        } else {
+            g_propagate_error(error, local_error);
+            local_error = NULL;
+        }
+        g_clear_error(&local_error);
+    }
+
     return FALSE;
 }
 
@@ -1048,14 +1112,14 @@ nm_interface_get_access_points(NMInterface *nm_interface, const gchar *device_pa
 
     /* Create Wi-Fi device proxy */
     wifi_proxy = g_dbus_proxy_new_sync(
-        nm_interface-connection,
+        nm_interface->connection,
         G_DBUS_PROXY_FLAGS_NONE,
         NULL,
         NM_DBUS_SERVICE,
         device_path,
         NM_DBUS_INTERFACE_DEVICE_WIRELESS,
         NULL,
-        error);
+        &error);
 
     if (error) {
         g_warning("Failed to create Wi-Fi device proxy: %s", error->message);
@@ -1071,7 +1135,7 @@ nm_interface_get_access_points(NMInterface *nm_interface, const gchar *device_pa
         G_DBUS_CALL_FLAGS_NONE,
         -1,
         NULL,
-        error);
+        &error);
 
     if (error) {
         g_warning("Failed to get access points: %s", error->message);

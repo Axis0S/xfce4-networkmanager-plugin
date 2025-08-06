@@ -14,7 +14,7 @@
 #include "mobile.h"
 #include <libnm/NetworkManager.h>
 
-struct MobileConnection {
+struct _MobileConnection {
     NMDevice *device;
     NMConnection *connection;
     gchar *apn;
@@ -47,4 +47,46 @@ initialize_mobile_connection(NMDevice *device, const gchar *apn) {
     g_free(mobile_conn->username);
     g_free(mobile_conn->password);
     g_free(mobile_conn);
+}
+
+GVariant *mobile_create_connection_gvariant(const gchar *id, const gchar *apn)
+{
+    GVariantBuilder connection_builder;
+    GVariant *connection_dict;
+    gchar *uuid;
+
+    uuid = g_new0(gchar, 37);
+    uuid_t uuid_bin;
+    uuid_generate(uuid_bin);
+    uuid_unparse(uuid_bin, uuid);
+
+    g_variant_builder_init(&connection_builder, G_VARIANT_TYPE("a{sa{sv}}"));
+
+    GVariantBuilder connection_section_builder;
+    g_variant_builder_init(&connection_section_builder, G_VARIANT_TYPE("a{sv}"));
+    g_variant_builder_add(&connection_section_builder, "{sv}", "type", g_variant_new_string("gsm"));
+    g_variant_builder_add(&connection_section_builder, "{sv}", "id", g_variant_new_string(id));
+    g_variant_builder_add(&connection_section_builder, "{sv}", "uuid", g_variant_new_string(uuid));
+    g_variant_builder_add(&connection_builder, "{sa{sv}}", "connection", &connection_section_builder);
+
+    GVariantBuilder gsm_section_builder;
+    g_variant_builder_init(&gsm_section_builder, G_VARIANT_TYPE("a{sv}"));
+    g_variant_builder_add(&gsm_section_builder, "{sv}", "apn", g_variant_new_string(apn));
+    g_variant_builder_add(&connection_builder, "{sa{sv}}", "gsm", &gsm_section_builder);
+
+    GVariantBuilder ipv4_section_builder;
+    g_variant_builder_init(&ipv4_section_builder, G_VARIANT_TYPE("a{sv}"));
+    g_variant_builder_add(&ipv4_section_builder, "{sv}", "method", g_variant_new_string("auto"));
+    g_variant_builder_add(&connection_builder, "{sa{sv}}", "ipv4", &ipv4_section_builder);
+
+    GVariantBuilder ipv6_section_builder;
+    g_variant_builder_init(&ipv6_section_builder, G_VARIANT_TYPE("a{sv}"));
+    g_variant_builder_add(&ipv6_section_builder, "{sv}", "method", g_variant_new_string("auto"));
+    g_variant_builder_add(&connection_builder, "{sa{sv}}", "ipv6", &ipv6_section_builder);
+
+    connection_dict = g_variant_builder_end(&connection_builder);
+
+    g_free(uuid);
+
+    return connection_dict;
 }
